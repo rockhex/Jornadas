@@ -8,27 +8,32 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ar.jornadas.data.Charla
-
+import ar.jornadas.presentation.Aviso
+import ar.jornadas.presentation.ProgramaUi
+import ar.jornadas.domain.model.Charla
 @Composable
-fun Catalogo(model: ProgramaModel, abrir: (String) -> Unit) {
-    LaunchedEffect(Unit) { model.recargar() }
-    val dia by model.dia.collectAsStateWithLifecycle()
-    var tema by remember { mutableStateOf("Todos") }
-    val fichas by model.charlas.collectAsStateWithLifecycle()
-    val aviso by model.aviso.collectAsStateWithLifecycle()
-    val cargando by model.cargando.collectAsStateWithLifecycle()
-    Selector(listOf("Ambos días", "Día 1", "Día 2"), dia) { model.dia.value = it }
+fun Catalogo(ui: ProgramaUi.Listo, dia: Int, tema: String,
+             onDia: (Int) -> Unit, onTema: (String) -> Unit,
+             onActualizar: () -> Unit, abrir: (String) -> Unit) {
+    Selector(listOf("Ambos días", "Día 1", "Día 2"), dia, onDia)
     val temas = listOf("Todos", "Android", "Datos", "Calidad")
-    Selector(temas, temas.indexOf(tema)) { tema = temas[it] }
-    TextButton(onClick = model::recargar) { Text("Actualizar") }
-    if (cargando) LinearProgressIndicator(Modifier.fillMaxWidth())
-    if (aviso.isNotEmpty()) {
-        Text(aviso)
-        OutlinedButton(onClick = model::recargar) { Text("Reintentar") }
-    } else {
-        Grilla(fichas.filter { (dia == 0 || it.dia == dia) && (tema == "Todos" || it.tema == tema) }, abrir)
+    Selector(temas, temas.indexOf(tema)) { onTema(temas[it]) }
+    TextButton(onClick = onActualizar) { Text("Actualizar") }
+    if (ui.sincronizando) LinearProgressIndicator(Modifier.fillMaxWidth())
+
+    when (ui.aviso) {
+        Aviso.DatosGuardados -> Text("Sin conexión: se muestran datos guardados")
+        Aviso.SinDescargaPrevia -> {
+            Text("No se pudo consultar el programa")
+            OutlinedButton(onClick = onActualizar) { Text("Reintentar") }
+        }
+        null -> Unit
+    }
+    when {
+        !ui.hayEdicion -> Unit                                   // sin descarga previa: no hay lista
+        ui.todas.isEmpty() -> Text("Sin charlas programadas")    // v4 válida
+        ui.visibles.isEmpty() -> Text("Ninguna charla coincide con los filtros")
+        else -> Grilla(ui.visibles, abrir)                       // lista visible con o sin falla
     }
 }
 

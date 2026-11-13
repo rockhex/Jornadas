@@ -7,17 +7,16 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.IOException
 
-class ServicioLocal(private val app: Context) : Interceptor {
+class ServicioLocal(private val app: Context) : Interceptor, ControlMesa {
     private val config = app.getSharedPreferences("mesa", Context.MODE_PRIVATE)
-    val llamadas = MutableStateFlow(0)
-    var revision: Int
+    override val llamadas = MutableStateFlow(0)
+    override var revision: Int
         get() = config.getInt("revision", 1)
         set(value) { config.edit().putInt("revision", value).apply() }
-    var disponible: Boolean
+    override var disponible: Boolean
         get() = config.getBoolean("disponible", true)
         set(value) { config.edit().putBoolean("disponible", value).apply() }
-
-    var demoraLarga: Boolean
+    override var demoraLarga: Boolean
         get() = config.getBoolean("demoraLarga", false)
         set(value) { config.edit().putBoolean("demoraLarga", value).apply() }
 

@@ -8,10 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ar.jornadas.lab.ServicioLocal
-
+import ar.jornadas.lab.ControlMesa
 @Composable
-fun Mesa(servicio: ServicioLocal) {
+fun Mesa(servicio: ControlMesa) {
     val contador by servicio.llamadas.collectAsStateWithLifecycle()
     var online by remember { mutableStateOf(servicio.disponible) }
     var revision by remember { mutableIntStateOf(servicio.revision) }
